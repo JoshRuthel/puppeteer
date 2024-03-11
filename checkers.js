@@ -1,17 +1,23 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-const { testConnection } = require('./db');
+const {
+  db,
+  createProductBrandTable,
+  createCheckersProductTable,
+  createCheckersPromotionsTable,
+  initiateConnection,
+  endConnection
+} = require('./dbSetup');
 
-const { insertData, navigatePage, delay } = require('./checkersUtils');
+const { insertData, navigatePage } = require('./checkersUtils');
+const { delay } = require('./utilFunctions');
 const { categories } = require('./checkersCategories');
 
 puppeteer.use(StealthPlugin());
 
-async function fetchData(url, initialPage, endPage) {
+async function fetchData(url, urlKey, initialPage, endPage) {
   const productData = [];
-  let productCount = 0;
-
-  const categoryType = categories[url].category;
+  const categoryType = categories[urlKey].category;
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -20,11 +26,10 @@ async function fetchData(url, initialPage, endPage) {
 
   const page = await browser.newPage();
 
-  for (let trials = 0; trials < 2; trials++) {z
+  for (let trials = 0; trials < 2; trials++) {
     try {
       await navigatePage(
         page,
-        productCount,
         productData,
         initialPage,
         endPage,
@@ -45,14 +50,18 @@ async function fetchData(url, initialPage, endPage) {
 }
 
 async function main() {
-  await testConnection();
-  for (const url of Object.keys(categories).slice(33)) {
+  await initiateConnection();
+  await createProductBrandTable();
+  await createCheckersProductTable();
+  await createCheckersPromotionsTable();
+  for (const url of Object.keys(categories)) {
     console.log('Scraping', categories[url].category);
     if (categories[url].iterate) {
       let startPage = 0;
       while (true) {
-        const url = url + `${startPage}`;
+        const newUrl = url + `${startPage}`;
         const productData = await fetchData(
+          newUrl,
           url,
           startPage + 1,
           startPage + 16 > categories[url].endPage
@@ -65,11 +74,12 @@ async function main() {
         startPage += 15;
       }
     } else {
-      const productData = await fetchData(url);
+      const productData = await fetchData(url, url);
       // Update or insert product data
       await insertData(productData);
     }
   }
+  await endConnection();
 }
 
 main();

@@ -35,6 +35,7 @@ const units = [  'kg',
 'l',
 'cm',
 'pack',
+'pk',
 'single',
 'half',
 'quarter',
@@ -57,6 +58,14 @@ const woolworthsProduct = sequelize.define('woolworths_product', {
   price: {
     type: DataTypes.FLOAT,
     allowNull: false,
+  },
+  volume: {
+    type: DataTypes.FLOAT,
+    allowNull: false
+  },
+  volumeUnit: {
+    type: DataTypes.ENUM(units),
+    allowNull: true,
   },
   brand: {
     type: DataTypes.STRING,
@@ -82,7 +91,7 @@ const woolworthsProduct = sequelize.define('woolworths_product', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  lowLevelCatgeory: {
+  lowLevelCategory: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -204,4 +213,5 @@ module.exports = {
   checkersPromotions,
   categoryTypes,
   testConnection,
+  units
 };
