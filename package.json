@@ -9,12 +9,16 @@
   "author": "Josh",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.6.7",
+    "@google-cloud/storage": "^7.8.0",
+    "axios": "^1.6.8",
+    "mkdirp": "^3.0.1",
+    "path": "^0.12.7",
     "pg": "^8.11.3",
     "puppeteer": "^22.0.0",
     "puppeteer-cluster": "^0.23.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "sequelize": "^6.36.0"
+    "uuid": "^9.0.1",
+    "uuidv4": "^6.2.13"
   }
 }

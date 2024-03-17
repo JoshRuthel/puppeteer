@@ -1,7 +1,7 @@
 const brandData = [];
-const { getVolume, delay } = require('./utilFunctions');
-const { db } = require('./dbSetup');
-const { categoryTypes } = require('./resources');
+const { getVolume, delay } = require('../utilFunctions');
+const { db } = require('../db/db');
+const { categoryTypes } = require('../resources');
 
 // Tries to match the brand name in the title
 async function getCBrandName(title, categoryType) {

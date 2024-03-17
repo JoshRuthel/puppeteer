@@ -5,10 +5,10 @@ const {
   setupDB,
   setupCheckers,
   endDB,
-} = require('./dbSetup');
+} = require('../db');
 
-const { insertData, navigatePage } = require('./checkersUtils');
-const { delay } = require('./utilFunctions');
+const { insertData, navigatePage } = require('../checkersUtils');
+const { delay } = require('../utilFunctions');
 const { categories } = require('./checkersCategories');
 
 puppeteer.use(StealthPlugin());

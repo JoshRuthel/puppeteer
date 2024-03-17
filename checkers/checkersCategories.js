@@ -1,4 +1,4 @@
-const { categoryTypes } = require('./resources');
+const { categoryTypes } = require('../resources');
 
 const categories = {
   'https://www.checkers.co.za/c-66/All-Departments/Food/Fresh-Food/Fresh-Fruit?q=%3Arelevance%3AbrowseAllStoresFacet%3AbrowseAllStoresFacet%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=0':

@@ -3,19 +3,21 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const {
   db,
   setupDB,
-  setupCheckers,
+  setupWoolworths,
   endDB,
-} = require('./dbSetup');
+} = require('../db/db');
 
-const { insertData, navigatePage } = require('./checkersUtils');
-const { delay } = require('./utilFunctions');
-const { categories } = require('./checkersCategories');
+const { insertData, navigatePage } = require('../woolworthsUtils');
+const { delay } = require('../utils/utilFunctions');
+const { categories } = require('./woolworthsCategories');
 
 puppeteer.use(StealthPlugin());
 
-async function fetchData(url, urlKey, initialPage, endPage) {
+async function fetchData(url, initialPage, endPage) {
   const productData = [];
-  const categoryType = categories[urlKey].category;
+  let productCount = 0;
+
+  const categoryType = categories[url].category;
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -49,15 +51,14 @@ async function fetchData(url, urlKey, initialPage, endPage) {
 
 async function main() {
   await setupDB();
-  await setupCheckers();
+  await setupWoolworths();
   for (const url of Object.keys(categories)) {
     console.log('Scraping', categories[url].category);
     if (categories[url].iterate) {
       let startPage = 0;
       while (true) {
-        const newUrl = url + `${startPage}`;
+        const url = url + `${startPage}`;
         const productData = await fetchData(
-          newUrl,
           url,
           startPage + 1,
           startPage + 16 > categories[url].endPage
@@ -70,7 +71,7 @@ async function main() {
         startPage += 15;
       }
     } else {
-      const productData = await fetchData(url, url);
+      const productData = await fetchData(url);
       // Update or insert product data
       await insertData(productData);
     }
