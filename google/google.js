@@ -3,7 +3,7 @@ const { Storage } = require('@google-cloud/storage');
 
 const storage = new Storage({
     projectId: "super-shopper",
-    keyFilename: "service-account.json",
+    keyFilename: "google/service-account.json",
   });
 
 const bucketName = 'rooth-picture-bucket';

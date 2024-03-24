@@ -1,7 +1,9 @@
 const brandData = [];
-const { getVolume, delay } = require('../utilFunctions');
+const { getVolume, delay } = require('../utils//utilFunctions');
 const { db } = require('../db/db');
-const { categoryTypes } = require('../resources');
+const { categoryTypes } = require('../db/resources');
+const { downloadImage } = require('../utils/utilFunctions');
+const { v4: uuid } = require('uuid');
 
 // Tries to match the brand name in the title
 async function getCBrandName(title, categoryType) {
@@ -34,8 +36,8 @@ async function insertBrands() {
       if (brands && brands.length) continue;
       else {
         const insertQuery =
-          'INSERT INTO product_brands(name, type) VALUES($1, $2)';
-        await db.query(insertQuery, [brand.name, brand.type]);
+          'INSERT INTO product_brands(id, name, type) VALUES($1, $2, $3)';
+        await db.query(insertQuery, [uuid(), brand.name, brand.type]);
       }
     } catch (e) {
       console.error('Error inserting brand:', e);
@@ -48,17 +50,19 @@ async function insertData(productData) {
   for (const product of productData) {
     // Find product by title
     const query = `
-    INSERT INTO checkers_products (title, price, sale_price, volume, unit, brand, promotion_id, card_required, category_type, high_level_category, low_level_category)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    INSERT INTO checkers_products (id, title, price, sale_price, volume, unit, brand, promotion_id, card_required, image_url, category_type, high_level_category, low_level_category)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     ON CONFLICT (title, price) DO UPDATE
     SET 
         price = EXCLUDED.price,
         sale_price = EXCLUDED.sale_price,
         promotion_id = EXCLUDED.promotion_id,
         card_required = EXCLUDED.card_required
+    RETURNING CASE WHEN xmax IS NULL THEN id ELSE NULL END AS id;
   `;
     try {
-      await db.query(query, [
+      const { rows } = await db.query(query, [
+        product.id,
         product.title,
         product.standardPrice,
         product.salePrice,
@@ -67,10 +71,19 @@ async function insertData(productData) {
         product.brand,
         product.promotionId,
         product.loyaltyCardRequired,
+        'temp',
         product.categoryType,
         product.highLevelCategory,
         product.lowLevelCategory,
       ]);
+      if (!rows[0].id) continue;
+      const imageURL = await downloadImage(product.imageURL, product.id);
+      const updateQuery = 'UPDATE checkers_products SET image_url = $1 WHERE id = $2';
+      try {
+        await db.query(updateQuery, [imageURL, product.id]);
+      } catch (e) {
+        console.error("Error updating imageUrl", e)
+      }
     } catch (e) {
       console.error('Error inserting product:', e);
     }
@@ -119,8 +132,11 @@ async function getProductData(page, elementHandle, categoryType, productData) {
   //Volume info
   const [volumeUnit, volume] = getVolume(parsedData.name);
 
+  const id = uuid();
+
   if (dataProductGa) {
     productData.push({
+      id,
       title: parsedData.name,
       standardPrice: parsedData.price === '' ? null : parsedData.price,
       salePrice:
@@ -130,6 +146,7 @@ async function getProductData(page, elementHandle, categoryType, productData) {
       brand,
       volume,
       volumeUnit,
+      imageURL: parsedData.product_image_url,
       promotionId: null,
       loyaltyCardRequired: extraSavings ? true : false,
       categoryType,
@@ -159,17 +176,15 @@ async function getPromotionInfo(elementHandle, page, promotionLinks, i) {
 async function addOrFindPromotion(promotionText, validUntil) {
   // Will search for already existing promotion or create a new entry and return the id
   try {
-    const selectQuery = `SELECT * FROM checkers_promotions WHERE title = $1`;
-    const { rows: promotion } = db.query(selectQuery, [promotionText.trim()]);
+    const selectQuery = `SELECT id FROM checkers_promotions WHERE title = $1`;
+    const { rows: promotion } = await db.query(selectQuery, [promotionText.trim()]);
     if (promotion && promotion.length) return promotion[0].id;
     else {
-      const insertQuery = `INSERT INTO checkers_promotions (title, valid_until) VALUES ($1, $2) RETURNING id`;
+      const insertQuery = `INSERT INTO checkers_promotions (id, title, valid_until) VALUES ($1, $2, $3) RETURNING id`;
       const text = promotionText.trim();
       const date = new Date(validUntil.replace('Valid until ', '').trim());
-      const {rows: promotion} = await db.query(insertQuery, [
-        text,
-        date
-      ]);
+      const id = uuid();
+      const { rows: promotion } = await db.query(insertQuery, [id, text, date]);
       return promotion[0].id;
     }
   } catch (e) {
@@ -192,7 +207,6 @@ async function navigatePage(
     (el) => parseInt(el.innerText.trim().replace(',', '').split(' items')[0]),
     productCountEl
   );
-
   let nextPageExists = true;
   let pageNumber = initialPage ?? 1;
   let lastPage = Math.min(Math.ceil(productCount / 20), endPage ?? 100000);

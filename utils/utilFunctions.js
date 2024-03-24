@@ -1,4 +1,6 @@
-const {units} = require('../db/resources');
+const { storage, bucketName } = require('../google/google');
+const axios = require('axios');
+const { units } = require('../db/resources');
 
 function getVolume(title) {
   if (title.includes('(Single Item)')) return ['single', 1];
@@ -53,4 +55,23 @@ function getVolume(title) {
 const delay = (milliseconds) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-module.exports = { getVolume, delay };
+async function downloadImage(url, uuid) {
+  const imageName = `${uuid}.jpg`;
+  const response = await axios.get(url, { responseType: 'arraybuffer' });
+
+  try {
+    const file = storage.bucket(bucketName).file(imageName);
+    await file.save(response.data, {
+      metadata: {
+        contentType: 'image/jpeg', // Adjust the content type as needed
+      },
+    });
+    const imageUrl = `https://storage.googleapis.com/${bucketName}/${imageName}`;
+    return imageUrl;
+  } catch (e) {
+    console.error('Error uploading image:', e);
+    return;
+  }
+}
+
+module.exports = { getVolume, delay, downloadImage };

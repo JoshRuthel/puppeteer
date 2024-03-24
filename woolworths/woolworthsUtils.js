@@ -1,8 +1,6 @@
 const { db } = require('../db/db');
-const { getVolume, delay } = require('../utils/utilFunctions');
+const { getVolume, delay, downloadImage } = require('../utils/utilFunctions');
 const { v4: uuid } = require('uuid');
-const { storage, bucketName } = require('../google/google');
-const axios = require('axios');
 
 async function navigatePage(
   page,
@@ -65,25 +63,6 @@ async function scrollPage(page) {
   }
 }
 
-async function downloadImage(url, uuid) {
-  const imageName = `${uuid}.jpg`;
-  const response = await axios.get(url, { responseType: 'arraybuffer' });
-
-  try {
-    const file = storage.bucket(bucketName).file(imageName);
-    await file.save(response.data, {
-      metadata: {
-        contentType: 'image/jpeg', // Adjust the content type as needed
-      },
-    });
-    const imageUrl = `https://storage.googleapis.com/${bucketName}/${imageName}`;
-    return imageUrl;
-  } catch (e) {
-    console.error('Error uploading image:', e);
-    return
-  }
-}
-
 async function extractProductInfo(
   page,
   productData,
@@ -124,8 +103,8 @@ async function addOrFindPromotion(promotionText) {
     const { rows: promotion } = await db.query(selectQuery, [text]);
     if (promotion && promotion.length) return promotion[0].id;
     else {
-      const insertQuery = `INSERT INTO woolworths_promotions (title) VALUES ($1) RETURNING id`;
-      const { rows: promotion } = await db.query(insertQuery, [text]);
+      const insertQuery = `INSERT INTO woolworths_promotions (id, title) VALUES ($1, $2) RETURNING id`;
+      const { rows: promotion } = await db.query(insertQuery, [uuid(), text]);
       return promotion[0].id;
     }
   } catch (e) {

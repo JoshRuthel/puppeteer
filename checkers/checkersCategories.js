@@ -1,4 +1,4 @@
-const { categoryTypes } = require('../resources');
+const { categoryTypes } = require('../db/resources');
 
 const categories = {
   'https://www.checkers.co.za/c-66/All-Departments/Food/Fresh-Food/Fresh-Fruit?q=%3Arelevance%3AbrowseAllStoresFacet%3AbrowseAllStoresFacet%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=0':
@@ -29,7 +29,7 @@ const categories = {
     { category: categoryTypes.frozen_food },
   'https://www.checkers.co.za/c-2614/All-Departments/Food/Bakery?q=%3Arelevance%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=0':
     { category: categoryTypes.bakery },
-  'https://www.checkers.co.za/c-92/All-Departments/Food/Food-Cupboard?q=%3Arelevance%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=':
+    'https://www.checkers.co.za/c-92/All-Departments/Food/Food-Cupboard?q=%3Arelevance%3AbrowseAllStoresFacet%3AbrowseAllStoresFacet%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=0':
     { category: categoryTypes.pantry, iterate: true, endPage: 242 },
   'https://www.checkers.co.za/c-2721/All-Departments/Household?q=%3Arelevance%3AbrowseAllStoresFacet%3AbrowseAllStoresFacet%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=':
     { category: categoryTypes.household_cleaning, iterate: true, endPage: 377 },

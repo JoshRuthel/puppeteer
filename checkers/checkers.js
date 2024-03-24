@@ -1,14 +1,13 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const {
-  db,
   setupDB,
   setupCheckers,
   endDB,
-} = require('../db');
+} = require('../db/db');
 
-const { insertData, navigatePage } = require('../checkersUtils');
-const { delay } = require('../utilFunctions');
+const { insertData, navigatePage } = require('./checkersUtils');
+const { delay } = require('../utils/utilFunctions');
 const { categories } = require('./checkersCategories');
 
 puppeteer.use(StealthPlugin());
@@ -50,7 +49,7 @@ async function fetchData(url, urlKey, initialPage, endPage) {
 async function main() {
   await setupDB();
   await setupCheckers();
-  for (const url of Object.keys(categories)) {
+  for (const url of Object.keys(categories).slice(14)) {
     console.log('Scraping', categories[url].category);
     if (categories[url].iterate) {
       let startPage = 0;

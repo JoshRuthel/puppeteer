@@ -18,7 +18,7 @@ async function createWoolworthsProductTable() {
       brand VARCHAR(255),
       volume FLOAT NOT NULL,
       unit VARCHAR(255),
-      promotion_id INTEGER,
+      promotion_id UUID,
       is_vitality BOOLEAN,
       is_wlist BOOLEAN,
       image_url VARCHAR(255),
@@ -43,7 +43,7 @@ async function createWoolworthsProductTable() {
 async function createWoolworthsPromotionsTable() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS woolworths_promotions (
-      id SERIAL PRIMARY KEY,
+      id UUID PRIMARY KEY,
       title VARCHAR(255) NOT NULL UNIQUE
     );
   `;
@@ -60,7 +60,7 @@ async function createWoolworthsPromotionsTable() {
 async function createProductBrandTable() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS product_brands (
-      id SERIAL PRIMARY KEY,
+      id UUID PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       type VARCHAR(255) NOT NULL
     );
@@ -85,7 +85,7 @@ async function createCheckersProductTable() {
       brand VARCHAR(255),
       volume FLOAT NOT NULL,
       unit VARCHAR(255),
-      promotion_id INTEGER,
+      promotion_id UUID,
       card_required BOOLEAN,
       image_url VARCHAR(255),
       category_type VARCHAR(255) NOT NULL,
@@ -109,8 +109,8 @@ async function createCheckersProductTable() {
 async function createCheckersPromotionsTable() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS checkers_promotions (
-      id SERIAL PRIMARY KEY,
-      title VARCHAR(255) NOT NULL,
+      id UUID PRIMARY KEY,
+      title VARCHAR(255) UNIQUE NOT NULL,
       valid_until DATE NOT NULL
     );
   `;
