@@ -12,7 +12,7 @@ const { categories } = require('./checkersCategories');
 
 puppeteer.use(StealthPlugin());
 
-async function fetchData(url, urlKey, initialPage, endPage) {
+async function fetchData(url, urlKey, initialPage,endPage) {
   const productData = [];
   const categoryType = categories[urlKey].category;
 
@@ -22,10 +22,10 @@ async function fetchData(url, urlKey, initialPage, endPage) {
   });
 
   const page = await browser.newPage();
-
+  let actualEndPage;;
   for (let trials = 0; trials < 2; trials++) {
     try {
-      await navigatePage(
+      actualEndPage = await navigatePage(
         page,
         productData,
         initialPage,
@@ -43,7 +43,7 @@ async function fetchData(url, urlKey, initialPage, endPage) {
   }
   await browser.close();
   await delay(5000);
-  return productData;
+  return {productData, endPage: actualEndPage};
 }
 
 async function main() {
@@ -53,20 +53,25 @@ async function main() {
     console.log('Scraping', categories[url].category);
     if (categories[url].iterate) {
       let startPage = 0;
+      let trials = 0;
       while (true) {
         const newUrl = url + `${startPage}`;
-        const productData = await fetchData(
+        const {productData, endPage} = await fetchData(
           newUrl,
           url,
           startPage + 1,
-          startPage + 16 > categories[url].endPage
-            ? categories[url].endPage
-            : startPage + 15
+          startPage + 15
         );
+        console.log(endPage)
         // Update or insert product data
         await insertData(productData);
-        if (startPage + 15 > categories[url].endPage) break; //would have scraped to the end already
-        startPage += 15;
+        startPage += 16;
+        if(endPage && (startPage >= endPage)) break;
+        if(!endPage) {
+          trials++;
+          startPage -= 16;
+        }
+        if(trials > 2) break;
       }
     } else {
       const productData = await fetchData(url, url);

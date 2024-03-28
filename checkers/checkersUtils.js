@@ -49,43 +49,52 @@ async function insertData(productData) {
   console.log(`Inserting ${productData.length} products`);
   for (const product of productData) {
     // Find product by title
-    const query = `
-    INSERT INTO checkers_products (id, title, price, sale_price, volume, unit, brand, promotion_id, card_required, image_url, category_type, high_level_category, low_level_category)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-    ON CONFLICT (title, price) DO UPDATE
-    SET 
-        price = EXCLUDED.price,
-        sale_price = EXCLUDED.sale_price,
-        promotion_id = EXCLUDED.promotion_id,
-        card_required = EXCLUDED.card_required
-    RETURNING CASE WHEN xmax IS NULL THEN id ELSE NULL END AS id;
-  `;
-    try {
-      const { rows } = await db.query(query, [
-        product.id,
-        product.title,
-        product.standardPrice,
-        product.salePrice,
-        product.volume,
-        product.volumeUnit,
-        product.brand,
-        product.promotionId,
-        product.loyaltyCardRequired,
-        'temp',
-        product.categoryType,
-        product.highLevelCategory,
-        product.lowLevelCategory,
-      ]);
-      if (!rows[0].id) continue;
-      const imageURL = await downloadImage(product.imageURL, product.id);
-      const updateQuery = 'UPDATE checkers_products SET image_url = $1 WHERE id = $2';
+    const checkQuery = 'SELECT id FROM checkers_products WHERE title = $1 AND price = $2';
+    const { rows: check } = await db.query(checkQuery, [product.title, product.standardPrice]);
+    console.log(check)
+    if (check.length) {
+      const updateQuery = `UPDATE checkers_products
+      SET 
+          price = $1,
+          sale_price = $2,
+          promotion_id = $3,
+          card_required = $4
+      WHERE id = $5;`;
       try {
-        await db.query(updateQuery, [imageURL, product.id]);
+        await db.query(updateQuery, [
+          product.standardPrice,
+          product.salePrice,
+          product.promotionId,
+          product.loyaltyCardRequired,
+          check[0].id,
+        ]);
       } catch (e) {
-        console.error("Error updating imageUrl", e)
+        console.error('Error updating product:', e);
       }
-    } catch (e) {
-      console.error('Error inserting product:', e);
+    } else {
+      const imageURL = await downloadImage(product.imageURL, product.id);
+      const insertQuery = `INSERT INTO checkers_products (id, title, price, sale_price, volume, unit, brand, promotion_id, card_required, image_url, category_type, high_level_category, low_level_category)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`
+      try {
+        await db.query(insertQuery, [
+          product.id,
+          product.title,
+          product.standardPrice,
+          product.salePrice,
+          product.volume,
+          product.volumeUnit,
+          product.brand,
+          product.promotionId,
+          product.loyaltyCardRequired,
+          imageURL,
+          product.categoryType,
+          product.highLevelCategory,
+          product.lowLevelCategory,
+        ]);
+        console.log('Inserted image', imageURL);
+      } catch (e) {
+        console.error('Error inserting product:', e);
+      }
     }
   }
 }
@@ -236,6 +245,7 @@ async function navigatePage(
     }
   }
   console.log('Finished', categoryType);
+  return Math.ceil(productCount / 20);
 }
 
 async function extractProductInfo(

@@ -30,15 +30,14 @@ const categories = {
   'https://www.checkers.co.za/c-2614/All-Departments/Food/Bakery?q=%3Arelevance%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=0':
     { category: categoryTypes.bakery },
     'https://www.checkers.co.za/c-92/All-Departments/Food/Food-Cupboard?q=%3Arelevance%3AbrowseAllStoresFacet%3AbrowseAllStoresFacet%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=0':
-    { category: categoryTypes.pantry, iterate: true, endPage: 242 },
+    { category: categoryTypes.pantry, iterate: true },
   'https://www.checkers.co.za/c-2721/All-Departments/Household?q=%3Arelevance%3AbrowseAllStoresFacet%3AbrowseAllStoresFacet%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=':
-    { category: categoryTypes.household_cleaning, iterate: true, endPage: 377 },
+    { category: categoryTypes.household_cleaning, iterate: true },
   'https://www.checkers.co.za/c-2748/All-Departments/Health-and-Beauty?q=%3Arelevance%3AbrowseAllStoresFacet%3AbrowseAllStoresFacet%3AbrowseAllStoresFacetOff%3AbrowseAllStoresFacetOff&page=':
     {
       category: categoryTypes.health,
       startPage: 0,
-      iterate: true,
-      endPage: 319,
+      iterate: true
     },
 };
 
